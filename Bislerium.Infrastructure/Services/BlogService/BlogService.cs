@@ -1,8 +1,11 @@
 ﻿using Bislerium.Application.IServices;
 using Bislerium.Domain.Entity.Blogs;
 using Bislerium.Domain.Entity.History;
+using Bislerium.Domain.Entity.Users;
 using Bislerium.Domain.ViewModels;
 using Bislerium.Infrastructure.Data;
+using Bislerium.Infrastructure.Services.HubService;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -68,7 +71,6 @@ namespace Bislerium.Infrastructure.Services.BlogService
             }
 
             var result =  query.Skip(skip).Take(pageSize).ToList();
-
             return (result);
         }
 

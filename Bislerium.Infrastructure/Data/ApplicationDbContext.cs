@@ -27,5 +27,6 @@ namespace Bislerium.Infrastructure.Data
         public DbSet<BlogHistory> BlogHistories { get; set; }
         public DbSet<CommentHistory> CommentHistories { get; set; }
         public DbSet<PushNotification> PushNotifications { get; set; }
+        public DbSet<FirebaseUserToken> FirebaseUserTokens { get; set; }
     }
 }

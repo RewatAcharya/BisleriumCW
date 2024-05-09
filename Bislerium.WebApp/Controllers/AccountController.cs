@@ -15,6 +15,7 @@ using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pag
 using Bislerium.Domain.Entity.History;
 using System.Reflection.Metadata;
 using Bislerium.Domain.ViewModels;
+using Microsoft.AspNetCore.SignalR;
 
 
 namespace Bislerium.WebApp.Controllers
@@ -219,6 +220,28 @@ namespace Bislerium.WebApp.Controllers
             };
 
             HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal, authProperties);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SaveToken([FromBody] CreateToken createToken)
+        {
+            //CreateToken createToken = new CreateToken()
+            //{
+            //    Token = token,
+            //    UserId = userId,
+            //};
+
+            using (var httpClient = new HttpClient())
+            {
+               
+                StringContent content = new StringContent(JsonConvert.SerializeObject(createToken), Encoding.UTF8, "application/json");
+
+                using (var response = await httpClient.PostAsync("https://localhost:7281/api/Account/SaveFCMToken", content))
+                {
+                    string apiresponse = await response.Content.ReadAsStringAsync();
+                }
+            }
+            return Json(createToken.Token);
         }
     }
 }

@@ -2,10 +2,13 @@
 using Bislerium.Domain.Entity.Blogs;
 using Bislerium.Domain.Entity.History;
 using Bislerium.Domain.Entity.Notifications;
+using Bislerium.Domain.Entity.Users;
 using Bislerium.Domain.Enums;
 using Bislerium.Domain.Statics;
 using Bislerium.Infrastructure.Data;
+using Bislerium.Infrastructure.Services.HubService;
 using Bislerium.Infrastructure.Services.NotificationServices;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -18,9 +21,11 @@ namespace Bislerium.Infrastructure.Services.BlogService
     public class CommentService : ICommentService
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public CommentService(ApplicationDbContext context)
+        public CommentService(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
+            _userManager = userManager;
             _context = context;
         }
 
@@ -37,19 +42,22 @@ namespace Bislerium.Infrastructure.Services.BlogService
             var result = _context.Blogs.Update(blog);
             await _context.SaveChangesAsync();
 
-            //if (result != null && entity.CommentUser != entity.Blog.Blogger)
-            //{
-            //    PushNotification notification = new()
-            //    {
-            //        Sender = entity.CommentUser,
-            //        Receiver = entity.Blog.Blogger,
-            //        Type = "Comment",
-            //        Message = "You have received comment from "+entity.User.Name,
-            //    };
+            await new FirebaseService(_context, _userManager).SendNotificationAsync(entity.Blog.Blogger, 
+                "Comment", "Your blog has been commented");
 
-            //    NotificationService service = new(_context);
-            //    await service.Create(notification);
-            //}
+            if (result != null && entity.CommentUser != entity.Blog.Blogger)
+            {
+                PushNotification notification = new()
+                {
+                    Sender = entity.CommentUser,
+                    Receiver = entity.Blog.Blogger,
+                    Type = "Comment",
+                    Message = "You have received comment from " + entity.User.Name,
+                };
+
+                NotificationService service = new(_context);
+                await service.Create(notification);
+            }
 
             return entity;
         }

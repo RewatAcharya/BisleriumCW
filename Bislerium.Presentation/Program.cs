@@ -30,11 +30,10 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddRoles<IdentityRole>()
     .AddDefaultTokenProviders();
 
-string serviceAccountKeyPath = "C:\\Users\\zackz\\Desktop\\AD Group CW\\Bislerium\\Bislerium.Infrastructure\\App_Data\\fire425837619-firebase-adminsdk-ktmdc-09f72270ac.json";
-builder.Services.AddSingleton<IFirebaseService>(new FirebaseService(serviceAccountKeyPath));
+//string serviceAccountKeyPath = "C:\\Users\\zackz\\Desktop\\AD Group CW\\Bislerium\\Bislerium.Infrastructure\\App_Data\\fire425837619-firebase-adminsdk-ktmdc-09f72270ac.json";
 
 //Register application services
- builder.Services.AddScoped<NotificationService1>();
+// builder.Services.AddScoped<NotificationService1>();
 
 builder.Services.AddAuthentication(options =>
 {
@@ -74,6 +73,7 @@ builder.Services.AddScoped<IUpVoteCommentService, UpVoteCommentService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<ITopTenService, TopTenService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IFirebaseService, FirebaseService>();
 
 builder.Services.AddSignalR();
 

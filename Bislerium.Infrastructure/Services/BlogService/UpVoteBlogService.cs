@@ -1,11 +1,13 @@
 ﻿using Bislerium.Application.IServices;
 using Bislerium.Domain.Entity.Blogs;
 using Bislerium.Domain.Entity.Notifications;
+using Bislerium.Domain.Entity.Users;
 using Bislerium.Domain.Enums;
 using Bislerium.Domain.Statics;
 using Bislerium.Infrastructure.Data;
 using Bislerium.Infrastructure.Services.HubService;
 using Bislerium.Infrastructure.Services.NotificationServices;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -21,9 +23,11 @@ namespace Bislerium.Infrastructure.Services.BlogService
     public class UpVoteBlogService : IUpVoteBlogService
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public UpVoteBlogService(ApplicationDbContext context)
+        public UpVoteBlogService(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
+            _userManager = userManager;
             _context = context;
         }
 
@@ -77,8 +81,9 @@ namespace Bislerium.Infrastructure.Services.BlogService
                     if ((existingLike.Reaction == ReactionType.UpVote && likeBlog.Reaction == ReactionType.DownVote)
                         || (existingLike.Reaction == ReactionType.DownVote && likeBlog.Reaction == ReactionType.UpVote))
                     {
-                        var result = await new UpVoteBlogService(_context).UpdateAsync(existingLike.Id);
-
+                        var result = await new UpVoteBlogService(_context, _userManager).UpdateAsync(existingLike.Id);
+                        await new FirebaseService(_context, _userManager).SendNotificationAsync(blog.Blogger,
+                "Comment", $"Your blog's reaction has been updated: {likeBlog.Reaction}");
                         //if (result != null && likeBlog.LikedUser != likeBlog.Blog.Blogger)
                         //{
                         //    PushNotification notification = new()
@@ -97,8 +102,11 @@ namespace Bislerium.Infrastructure.Services.BlogService
                     }
                     else
                     {
-                        await new UpVoteBlogService(_context).DeleteVote(existingLike.Id);
-                        var result = await new UpVoteBlogService(_context).UpdatePopulaityAsync(existingLike.LikedBlog, likeBlog.Reaction, false, true);
+                        await new UpVoteBlogService(_context, _userManager).DeleteVote(existingLike.Id);
+                        var result = await new UpVoteBlogService(_context, _userManager).UpdatePopulaityAsync(existingLike.LikedBlog, likeBlog.Reaction, false, true);
+
+                        await new FirebaseService(_context, _userManager).SendNotificationAsync(blog.Blogger,
+                "Comment", $"Your blog's reaction has been delete: {likeBlog.Reaction}");
 
                         //if (result != null && likeBlog.LikedUser != likeBlog.Blog?.Blogger)
                         //{
@@ -121,7 +129,11 @@ namespace Bislerium.Infrastructure.Services.BlogService
                 {
                     _context.LikeBlogs.Add(likeBlog);
                     await _context.SaveChangesAsync();
-                    var result = await new UpVoteBlogService(_context).UpdatePopulaityAsync(likeBlog.LikedBlog, likeBlog.Reaction, true, false);
+                    var result = await new UpVoteBlogService(_context, _userManager).UpdatePopulaityAsync(likeBlog.LikedBlog, likeBlog.Reaction, true, false);
+
+                    await new FirebaseService(_context, _userManager).SendNotificationAsync(blog.Blogger,
+                "Comment", $"Your blog's has been {likeBlog.Reaction}");
+
                     //if (result != null && likeBlog.LikedUser != likeBlog.Blog.Blogger)
                     //{
                     //    PushNotification notification = new()

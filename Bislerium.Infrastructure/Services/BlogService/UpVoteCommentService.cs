@@ -1,9 +1,12 @@
 ﻿using Bislerium.Application.IServices;
 using Bislerium.Domain.Entity.Blogs;
 using Bislerium.Domain.Entity.Notifications;
+using Bislerium.Domain.Entity.Users;
 using Bislerium.Domain.Enums;
 using Bislerium.Infrastructure.Data;
+using Bislerium.Infrastructure.Services.HubService;
 using Bislerium.Infrastructure.Services.NotificationServices;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -17,9 +20,12 @@ namespace Bislerium.Infrastructure.Services.BlogService
     public class UpVoteCommentService : IUpVoteCommentService
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public UpVoteCommentService(ApplicationDbContext context)
+
+        public UpVoteCommentService(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
+            _userManager = userManager;
             _context = context;
         }
 
@@ -29,7 +35,7 @@ namespace Bislerium.Infrastructure.Services.BlogService
             {
                 var existingLike = await GetLike(commentVote.LikedComment, commentVote.LikedUser);
 
-                CommentService commentService = new CommentService(_context);
+                CommentService commentService = new CommentService(_context, _userManager);
                 var comment = await commentService.GetByIdAsync(commentVote.LikedComment);
 
 
@@ -38,22 +44,8 @@ namespace Bislerium.Infrastructure.Services.BlogService
                     if ((existingLike.Reaction == ReactionType.UpVote && commentVote.Reaction == ReactionType.DownVote)
                         || (existingLike.Reaction == ReactionType.DownVote && commentVote.Reaction == ReactionType.UpVote))
                     {
-                        var result = await new UpVoteCommentService(_context).UpdateAsync(existingLike.Id);
-
-                        //if (result != null && commentVote.LikedUser != commentVote.Comment.CommentUser)
-                        //{
-                        //    PushNotification notification = new()
-                        //    {
-                        //        Sender = commentVote.LikedUser,
-                        //        Receiver = commentVote.Comment.CommentUser,
-                        //        Type = "Comment",
-                        //        Message = $"Your {existingLike.Reaction} has been update to {commentVote.Reaction} by " + commentVote.User.Name,
-                        //    };
-
-                        //    NotificationService service = new(_context);
-                        //    await service.Create(notification);
-                        //}
-
+                        var result = await new UpVoteCommentService(_context, _userManager).UpdateAsync(existingLike.Id);
+                        
                         return true;
                     }
                     else
@@ -67,25 +59,12 @@ namespace Bislerium.Infrastructure.Services.BlogService
                             comment.DownVotes -= 1;
                         }
                         
-                        var result = await new UpVoteCommentService(_context).Delete(existingLike.Id);
+                        var result = await new UpVoteCommentService(_context, _userManager).Delete(existingLike.Id);
                         if (result == true)
                         {
                             _context.Comments.Update(comment);
                             await _context.SaveChangesAsync();
 
-                            //if (result != null && commentVote.LikedUser != commentVote.Comment.CommentUser)
-                            //{
-                            //    PushNotification notification = new()
-                            //    {
-                            //        Sender = commentVote.LikedUser,
-                            //        Receiver = commentVote.Comment.CommentUser,
-                            //        Type = "Comment",
-                            //        Message = "You reaction on comment has been removed by " + commentVote.User.Name,
-                            //    };
-
-                            //    NotificationService service = new(_context);
-                            //    await service.Create(notification);
-                            //}
                         }
                         return false;
                     }
@@ -106,19 +85,6 @@ namespace Bislerium.Infrastructure.Services.BlogService
                     var result = _context.UpvoteComments.Add(commentVote);
                     await _context.SaveChangesAsync();
 
-                    //if (result != null && commentVote.LikedUser != commentVote.Comment.CommentUser)
-                    //{
-                    //    PushNotification notification = new()
-                    //    {
-                    //        Sender = commentVote.LikedUser,
-                    //        Receiver = commentVote.Comment.CommentUser,
-                    //        Type = "Comment",
-                    //        Message = "You have received like on comment from " + commentVote.User.Name,
-                    //    };
-
-                    //    NotificationService service = new(_context);
-                    //    await service.Create(notification);
-                    //}
                 }
                 return true;
             }
@@ -141,7 +107,7 @@ namespace Bislerium.Infrastructure.Services.BlogService
                 var like = await _context.UpvoteComments.FirstOrDefaultAsync(x => x.Id == id);
                 if (like != null)
                 {
-                    CommentService commentService = new CommentService(_context);
+                    CommentService commentService = new CommentService(_context, _userManager);
                     var comment = await commentService.GetByIdAsync(like.LikedComment);
 
                     if (like.Reaction == ReactionType.UpVote)

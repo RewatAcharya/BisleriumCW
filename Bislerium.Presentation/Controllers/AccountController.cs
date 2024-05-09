@@ -2,6 +2,8 @@
 using Bislerium.Domain.Entity.Users;
 using Bislerium.Domain.Statics;
 using Bislerium.Domain.ViewModels;
+using Bislerium.Infrastructure.Data;
+using FirebaseAdmin.Messaging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -26,18 +28,21 @@ namespace Bislerium.Presentation.Controllers
         private readonly IConfiguration _config;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IEmailService _emailService;
+        private readonly IFirebaseService _firebase;
 
         public AccountController(UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager,
             IConfiguration config,
             SignInManager<ApplicationUser> signInManager,
-            IEmailService email)
+            IEmailService email,
+            IFirebaseService firebase)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _config = config;
             _signInManager = signInManager;
             _emailService = email;
+            _firebase = firebase;
         }
 
         [HttpPost("registerUser")]
@@ -288,5 +293,14 @@ namespace Bislerium.Presentation.Controllers
                 return StatusCode((int)HttpStatusCode.InternalServerError, $"An error occurred: {ex.Message}");
             }
         }
+
+        [AllowAnonymous]
+        [HttpPost("SaveFCMToken")]
+        public async Task<IActionResult> SaveFCMToken(CreateToken payload)
+        {
+            var result = await _firebase.CreateNewToken(payload);
+            return Ok(result);
+        }
+
     }
 }

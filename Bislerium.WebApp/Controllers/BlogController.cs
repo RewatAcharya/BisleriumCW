@@ -102,8 +102,7 @@ namespace Bislerium.WebApp.Controllers
             return View(blogdetails);
         }
 
-        [Authorize(Roles = "Admin, Blogger")]
-        public async Task<IActionResult> Create()
+        private static async Task<List<Category>> AllCategories()
         {
             List<Category> blogCategories = new List<Category>();
             using (var httpClient = new HttpClient())
@@ -114,6 +113,13 @@ namespace Bislerium.WebApp.Controllers
                     blogCategories = JsonConvert.DeserializeObject<List<Category>>(apiResponse);
                 }
             }
+            return blogCategories;
+        }
+
+        [Authorize(Roles = "Admin, Blogger")]
+        public async Task<IActionResult> Create()
+        {
+            List<Category> blogCategories = await AllCategories();
             var elist = new SelectList(blogCategories, nameof(Category.Id), nameof(Category.NameOfCategory));
             ViewBag.eventList = elist;
             return View();
@@ -123,13 +129,16 @@ namespace Bislerium.WebApp.Controllers
         [Authorize(Roles = "Admin, Blogger")]
         public async Task<IActionResult> Create(Blog blog, IFormFile? fileUpload)
         {
-            int TenMegaBytes = 3 * 1024 * 1024;
+            int ThreeMegaBytes = 3 * 1024 * 1024;
             if (fileUpload != null && fileUpload.Length > 0)
             {
                 long fileSize = fileUpload.Length;
-                if(fileSize > TenMegaBytes)
+                if(fileSize > ThreeMegaBytes)
                 {
                     TempData["error"] = "Image is more than 3 mb";
+                    List<Category> blogCategories = await AllCategories();
+                    var elist = new SelectList(blogCategories, nameof(Category.Id), nameof(Category.NameOfCategory));
+                    ViewBag.eventList = elist;
                     return View(blog);
                 }
 
@@ -211,11 +220,11 @@ namespace Bislerium.WebApp.Controllers
         [Authorize(Roles = "Admin, Blogger")]
         public async Task<IActionResult> Update(Blog blog, IFormFile? fileUpload)
         {
-            int TenMegaBytes = 3 * 1024 * 1024;
+            int ThreeMegaBytes = 3 * 1024 * 1024;
             if (fileUpload != null && fileUpload.Length > 0)
             {
                 long fileSize = fileUpload.Length;
-                if (fileSize > TenMegaBytes)
+                if (fileSize > ThreeMegaBytes)
                 {
                     TempData["error"] = "Image is more than 3 mb";
                     return View(blog);
