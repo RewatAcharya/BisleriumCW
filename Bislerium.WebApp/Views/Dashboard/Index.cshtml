@@ -1,0 +1,251 @@
+﻿@using Bislerium.Domain.ViewModels
+@model DashboardVM
+
+@{
+    Layout = "_Admin";
+    ViewData["Title"] = "Dashboard";
+}
+<div class="container">
+    <div class="row justify-content-end">
+        <div class="col-auto">
+            <form id="dateForm" onsubmit="submitForm(); return false;">
+                <div class="d-flex">
+                    <select id="yearPicker" name="year">
+                    </select>
+                    <select id="monthPicker" name="month">
+                    </select>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<div class="container" style="height:50vh;width:500px">
+    <canvas id="pieChart"></canvas>
+</div>
+
+<script>
+    // Get data from the table
+    var totalBlogPosts = @Model.TotalBlogPosts;
+    var totalUpvotes = @Model.TotalUpvotes;
+    var totalDownvotes = @Model.TotalDownvotes;
+    var totalComments = @Model.TotalComments;
+
+    // Format data for the pie chart
+    var data = {
+        labels: ['Total Blog Posts', 'Total Upvotes', 'Total Downvotes', 'Total Comments'],
+        datasets: [{
+            data: [totalBlogPosts, totalUpvotes, totalDownvotes, totalComments],
+            backgroundColor: ['blue', 'green', 'orange', 'red']
+        }]
+    };
+
+    // Create a pie chart
+    var ctx = document.getElementById('pieChart').getContext('2d');
+    var pieChart = new Chart(ctx, {
+        type: 'pie',
+        data: data
+    });
+</script>
+
+
+<div class="container">
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">All-Time Stats</h5>
+
+        </div>
+        <div class="card-body">
+
+            <table class="table">
+                <tr>
+                    <th>Total Blog Posts</th>
+                    <td>@Model.TotalBlogPosts</td>
+                </tr>
+                <tr>
+                    <th>Total Upvotes</th>
+                    <td>@Model.TotalUpvotes</td>
+                </tr>
+                <tr>
+                    <th>Total Downvotes</th>
+                    <td>@Model.TotalDownvotes</td>
+                </tr>
+                <tr>
+                    <th>Total Comments</th>
+                    <td>@Model.TotalComments</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+
+    <br />
+</div>
+
+<div class="container">
+    <canvas id="dailyChart" width="800" height="400"></canvas>
+
+</div>
+
+<script>
+    // Get data for daily-based stats
+    var dailyData = @Html.Raw(Json.Serialize(ViewBag.DailyCount));
+
+    // Extract labels (dates) and data values
+    var labels = dailyData.map(item => item.day);
+    var blogData = dailyData.map(item => item.blog);
+    var commentData = dailyData.map(item => item.comment);
+    var likeData = dailyData.map(item => item.likes);
+    var dislikeData = dailyData.map(item => item.dislikes);
+
+    // Create a line chart
+    var ctx = document.getElementById('dailyChart').getContext('2d');
+    var dailyChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Blog',
+                data: blogData,
+                borderColor: 'blue',
+                backgroundColor: 'rgba(0, 0, 255, 0.1)'
+            }, {
+                label: 'Comment',
+                data: commentData,
+                borderColor: 'green',
+                backgroundColor: 'rgba(0, 255, 0, 0.1)'
+            }, {
+                label: 'Upvote',
+                data: likeData,
+                borderColor: 'orange',
+                backgroundColor: 'rgba(255, 165, 0, 0.1)'
+            }, {
+                label: 'Downvote',
+                data: dislikeData,
+                borderColor: 'red',
+                backgroundColor: 'rgba(255, 0, 0, 0.1)'
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+
+<div class="container">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Daily-Based Stats</h5>
+            <table class="table">
+                <tr>
+                    <th>Date</th>
+                    <th>Blog</th>
+                    <th>Comment</th>
+                    <th>Upvote</th>
+                    <th>Downvote</th>
+                </tr>
+                @foreach (var item in ViewBag.DailyCount as List<LikeCountVM>)
+                {
+                    <tr>
+                        <td>@ViewBag.Year@item.Day</td>
+                        <td>@item.Blog</td>
+                        <td>@item.Comment</td>
+                        <td>@item.Likes</td>
+                        <td>@item.Dislikes</td>
+                    </tr>
+                }
+
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Month-Based Stats</h5>
+            <table class="table">
+                <tr>
+                    <th>Stats</th>
+                    <th>Current</th>
+                    <th>Previous</th>
+                </tr>
+                <tr>
+                    <td>Total Blog Posts</td>
+                    <td>@Model.MonthlyBlogPosts.CurrentTotalBlogPosts</td>
+                    <td>@Model.MonthlyBlogPosts.PreviousTotalBlogPosts</td>
+                </tr>
+                <tr>
+                    <td>Total Upvotes</td>
+                    <td>@Model.MonthlyUpvotes.CurrentTotalUpvotes</td>
+                    <td>@Model.MonthlyUpvotes.PreviousTotalUpvotes</td>
+                </tr>
+                <tr>
+                    <td>Total Downvotes</td>
+                    <td>@Model.MonthlyDownvotes.CurrentTotalDownvotes</td>
+                    <td>@Model.MonthlyDownvotes.PreviousTotalDownvotes</td>
+                </tr>
+                <tr>
+                    <td>Total Comments</td>
+                    <td>@Model.MonthlyComments.CurrentTotalComments</td>
+                    <td>@Model.MonthlyComments.PreviousTotalComments</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function generateYearOptions() {
+        var currentYear = new Date().getFullYear();
+        var yearPicker = document.getElementById("yearPicker");
+        for (var i = currentYear - 10; i <= currentYear; i++) {
+            var option = document.createElement("option");
+            option.value = i;
+            option.text = i;
+            yearPicker.appendChild(option);
+        }
+    }
+
+    function generateMonthOptions() {
+        var monthPicker = document.getElementById("monthPicker");
+        for (var i = 1; i <= 12; i++) {
+            var option = document.createElement("option");
+            var month = i < 10 ? "0" + i : i;
+            option.value = month;
+            option.text = month;
+            monthPicker.appendChild(option);
+        }
+    }
+
+    function preSelectCurrentDate() {
+        var currentDate = new Date();
+        var currentYear = currentDate.getFullYear();
+        var currentMonth = currentDate.getMonth() + 1;
+        document.getElementById("yearPicker").value = currentYear;
+        document.getElementById("monthPicker").value = currentMonth < 10 ? "0" + currentMonth : currentMonth;
+    }
+
+    generateYearOptions();
+    generateMonthOptions();
+    preSelectCurrentDate();
+
+    function updateURLParams() {
+        var year = document.getElementById("yearPicker").value;
+        var month = document.getElementById("monthPicker").value;
+
+        var url = "/Dashboard?year=" + year + "&month=" + month;
+
+        window.history.replaceState({}, '', url);
+    }
+
+    document.getElementById("yearPicker").addEventListener("change", updateURLParams);
+    document.getElementById("monthPicker").addEventListener("change", updateURLParams);
+</script>

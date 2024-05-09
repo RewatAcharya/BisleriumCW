@@ -1,0 +1,170 @@
+﻿@using Bislerium.Domain.ViewModels
+@model TopTen
+
+@{
+    ViewData["Title"] = "Top-Ten Data";
+    Layout = "_Admin";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="row justify-content-end">
+            <div class="col-auto">
+                <form id="dateForm" onsubmit="submitForm(); return false;">
+                    <div class="d-flex">
+                        <select id="yearPicker" name="year">
+                        </select>
+                        <select id="monthPicker" name="month">
+                        </select>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">All-Time Top 10 Blogs</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <tr>
+                            <th>Rank</th>
+                            <th>Title</th>
+                            <th>Author</th>
+                        </tr>
+                        @foreach (var blog in Model.AllTimeBlog)
+                        {
+                            <tr>
+                                <td>@(Model.AllTimeBlog.IndexOf(blog) + 1)</td>
+                                <td>@blog.Title</td>
+                                <td>@blog.User.Name</td>
+                            </tr>
+                        }
+                    </table>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">All-Time Top 10 Bloggers</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <tr>
+                            <th>Rank</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                        </tr>
+                        @foreach (var blogger in Model.AllTimeBlogger)
+                        {
+                            <tr>
+                                <td>@(Model.AllTimeBlogger.IndexOf(blogger) + 1)</td>
+                                <td>@blogger.Name</td>
+                                <td>@blogger.Email</td>
+                            </tr>
+                        }
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Month Top 10 Blogs</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <tr>
+                            <th>Rank</th>
+                            <th>Title</th>
+                            <th>Author</th>
+                        </tr>
+                        @foreach (var blog in Model.MonthlyTopBlog)
+                        {
+                            <tr>
+                                <td>@(Model.MonthlyTopBlog.IndexOf(blog) + 1)</td>
+                                <td>@blog.Title</td>
+                                <td>@blog.User.Name</td>
+                            </tr>
+                        }
+                    </table>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Month Top 10 Bloggers</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <tr>
+                            <th>Rank</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                        </tr>
+                        @foreach (var blogger in Model.MonthlyTopBlogger)
+                        {
+                            <tr>
+                                <td>@(Model.MonthlyTopBlogger.IndexOf(blogger) + 1)</td>
+                                <td>@blogger.Name</td>
+                                <td>@blogger.Email</td>
+                            </tr>
+                        }
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    function generateYearOptions() {
+        var currentYear = new Date().getFullYear();
+        var yearPicker = document.getElementById("yearPicker");
+        for (var i = currentYear - 10; i <= currentYear; i++) {
+            var option = document.createElement("option");
+            option.value = i;
+            option.text = i;
+            yearPicker.appendChild(option);
+        }
+    }
+
+    function generateMonthOptions() {
+        var monthPicker = document.getElementById("monthPicker");
+        for (var i = 1; i <= 12; i++) {
+            var option = document.createElement("option");
+            var month = i < 10 ? "0" + i : i;
+            option.value = month;
+            option.text = month;
+            monthPicker.appendChild(option);
+        }
+    }
+
+    function preSelectCurrentDate() {
+        var currentDate = new Date();
+        var currentYear = currentDate.getFullYear();
+        var currentMonth = currentDate.getMonth() + 1;
+        document.getElementById("yearPicker").value = currentYear;
+        document.getElementById("monthPicker").value = currentMonth < 10 ? "0" + currentMonth : currentMonth;
+    }
+
+    generateYearOptions();
+    generateMonthOptions();
+    preSelectCurrentDate();
+
+    function updateURLParams() {
+        var year = document.getElementById("yearPicker").value;
+        var month = document.getElementById("monthPicker").value;
+
+        var url = "/Dashboard/TopTen?year=" + year + "&month=" + month;
+
+        window.history.replaceState({}, '', url);
+    }
+
+    document.getElementById("yearPicker").addEventListener("change", updateURLParams);
+    document.getElementById("monthPicker").addEventListener("change", updateURLParams);
+</script>

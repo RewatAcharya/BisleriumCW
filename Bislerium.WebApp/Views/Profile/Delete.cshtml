@@ -1,0 +1,20 @@
+﻿<form asp-action="DeleteConfirm">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="staticBackdropLabel">
+                Add Skills
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input name="Id" value="@ViewBag.Id" hidden />
+            Are you sure?<br />
+            You want to delete your account?
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <input type="submit" value="Delete" class="btn btn-danger" />
+        </div>
+    </div>
+</form>

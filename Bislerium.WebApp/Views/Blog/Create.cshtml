@@ -1,0 +1,75 @@
+﻿@using System.Security.Claims
+@model Bislerium.Domain.Entity.Blogs.Blog
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+
+<div class="container">
+    <div class="row justify-content-center align-items-center m-3">
+        <div class="col-md-6">
+            <div class="card shadow-lg p-4" style="border-radius: 0px 30px">
+                <h3 class="card-title mb-4">Post a New Blog</h3>
+                <form asp-action="Create" asp-controller="Blog" method="post" enctype="multipart/form-data">
+                    <input asp-for="Blogger" value="@User.FindFirstValue(ClaimTypes.NameIdentifier)?.ToString()" hidden />
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Title</label>
+                        <input type="text" asp-for="Title" class="form-control" placeholder="Enter your blog title" required />
+                        <span asp-validation-for="Title" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label for="content" class="form-label">Content</label>
+                        <textarea id="content" asp-for="Content" class="form-control" rows="5" placeholder="Enter your blog content"></textarea>
+                        <span asp-validation-for="Content" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label for="blogType" class="form-label">Select Blog Type</label>
+                        <select asp-items="@ViewBag.EventList" asp-for="Category" class="form-control"></select>
+                        <span asp-validation-for="Category" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="ImageUrl" class="form-label">Blog Image</label>
+                        <input type="file" id="fileUpload" class="form-control" onchange="compressAndValidate(this)" name="fileUpload">
+                        <span class="text-danger"></span>
+                        <div class="image-preview-container mt-2" style="display: none;">
+                            <img src="#" alt="Image Preview" id="imagePreview" class="image-preview" height="100px" width="100px">
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary w-100">Post</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/filemanager.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const input = document.getElementById('fileUpload');
+        const imagePreviewContainer = document.querySelector('.image-preview-container');
+        const imagePreview = document.getElementById('imagePreview');
+
+        input.addEventListener('change', function () {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    imagePreview.src = e.target.result;
+                    imagePreviewContainer.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                imagePreview.src = '#';
+                imagePreviewContainer.style.display = 'none';
+            }
+        });
+    });
+</script>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

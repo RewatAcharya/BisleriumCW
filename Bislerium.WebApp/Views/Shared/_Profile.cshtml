@@ -1,0 +1,52 @@
+﻿@using System.Security.Claims
+@{
+    Layout = "_Layout";
+}
+
+<style>
+    .sidebar {
+        background-color: #f8f9fa;
+        padding-top: 20px;
+        padding-bottom: 20px;
+    }
+
+    .main-content {
+        overflow-y: auto;
+        height: calc(100vh - 40px);
+    }
+</style>
+
+
+<div class="container">
+    <div class="row flex-nowrap">
+        <div class="col-auto col-md-3 col-xl-2 px-sm-2 px-0 sidebar">
+            <div class="d-flex flex-column align-items-center align-items-sm-start px-3 pt-2 text-dark min-vh-100">
+                <a asp-action="Index" asp-controller="Profile" asp-route-Id="@User.FindFirstValue(ClaimTypes.NameIdentifier).ToString()" class="d-flex align-items-center pb-3 mb-md-0 me-md-auto text-dark text-decoration-none">
+                    <i class="bi-house fs-4 me-2"></i><span class="fs-5 d-none d-sm-inline">Profile Detail</span>
+                </a>
+                <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start" id="menu">
+                    <li class="nav-item mt-2">
+                        <a class="text-decoration-none text-dark align-middle px-0" asp-route-Id="@User.FindFirstValue(ClaimTypes.NameIdentifier).ToString()" asp-action="ListUserBlog" asp-controller="Blog">
+                            <i class="bi-journal fs-4 me-2"></i><span class="ms-1">Blog<span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item mt-2">
+                        <a asp-action="EditProfile" asp-controller="Profile" asp-route-Id="@User.FindFirstValue(ClaimTypes.NameIdentifier).ToString()" class="text-decoration-none text-dark align-middle px-0">
+                            <i class="bi-person fs-4 me-2"></i><span class="ms-1">Edit Profile</span>
+                        </a>
+                    </li>
+                    <li class="nav-item mt-2">
+                        <a asp-action="ChangePassword" asp-controller="Profile" class="text-decoration-none text-dark align-middle px-0">
+                            <i class="bi-shield-lock fs-4 me-2"></i><span class="ms-1">Change Password</span>
+                        </a>
+                    </li>
+                </ul>
+
+            </div>
+        </div>
+        <div class="col py-3 main-content">
+            @RenderBody()
+        </div>
+    </div>
+</div>

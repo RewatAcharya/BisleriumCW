@@ -1,0 +1,66 @@
+﻿@model IEnumerable<Bislerium.Domain.Entity.Blogs.Category>
+
+@{
+    Layout = "_Admin";
+    ViewData["Title"] = "Index";
+    int count = 1;
+}
+
+
+<div class="container">
+    <p>
+        <a asp-action="Create" class="btn btn-outline-primary" data-ajax="true" data-ajax-method="get"
+           data-ajax-update="#page" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+            <i class="bi bi-plus-circle-fill"></i>
+            New Category
+        </a>
+    </p>
+    <div class="card">
+        <div class="card-header">
+            <h5>Categories</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-responsive">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.NameOfCategory)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.Description)
+                        </th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@count</td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.NameOfCategory)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Description)
+                            </td>
+                            <td>
+
+                                <a class="btn btn-primary" asp-action="Update" asp-route-id="@item.Id" asp-controller="BlogCategory" data-ajax="true" data-ajax-method="get"
+                                   data-ajax-update="#page" data-bs-toggle="modal" data-bs-target="#staticBackdrop">Update</a>
+                                <a class="btn btn-danger" asp-action="Delete" asp-route-id="@item.Id" asp-controller="BlogCategory">Delete</a>
+
+                            </td>
+                        </tr>
+                        count++;
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog" id="page">
+    </div>
+</div>

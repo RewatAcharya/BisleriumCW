@@ -1,0 +1,88 @@
+﻿@model IEnumerable<Bislerium.Domain.ViewModels.UserVM>
+
+@{
+    Layout = "_Admin";
+    ViewData["Title"] = "Index";
+    int count = 1;
+}
+
+<div class="container">
+    <div class="mb-3">
+        <a asp-action="Create" asp-controller="AdminUser" class="btn btn-outline-primary" data-ajax="true" data-ajax-method="get"
+           data-ajax-update="#page" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+            <i class="bi bi-plus-circle-fill"></i>
+            New Admin
+        </a>
+    </div>
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Users</h5>
+            <h5 class="mb-0">
+                <select class="form-select" id="roleFilter">
+                    <option value="all">All</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-responsive">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>@Html.DisplayNameFor(model => model.Name)</th>
+                        <th>@Html.DisplayNameFor(model => model.Email)</th>
+                        <th>@Html.DisplayNameFor(model => model.Address)</th>
+                        <th>@Html.DisplayNameFor(model => model.Phone)</th>
+                        <th>@Html.DisplayNameFor(model => model.Role)</th>
+                    </tr>
+                </thead>
+                <tbody id="userTableBody">
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@count</td>
+                            <td>@Html.DisplayFor(modelItem => item.Name)</td>
+                            <td>@Html.DisplayFor(modelItem => item.Email)</td>
+                            <td>@Html.DisplayFor(modelItem => item.Address)</td>
+                            <td>@Html.DisplayFor(modelItem => item.Phone)</td>
+                            <td>@Html.DisplayFor(modelItem => item.Role)</td>
+                        </tr>
+                        count++;
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog" id="page">
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const roleFilter = document.getElementById("roleFilter");
+        const userTableBody = document.getElementById("userTableBody");
+
+        function filterUsers() {
+            const selectedRole = roleFilter.value;
+            const rows = userTableBody.getElementsByTagName("tr");
+
+            for (let i = 0; i < rows.length; i++) {
+                const roleCell = rows[i].getElementsByTagName("td")[5]; 
+                const role = roleCell.textContent.trim();
+
+                if (selectedRole === "all" || role.toLowerCase() === selectedRole) {
+                    rows[i].style.display = "";
+                } else {
+                    rows[i].style.display = "none";
+                }
+            }
+        }
+        roleFilter.addEventListener("change", filterUsers);
+        filterUsers();
+    });
+</script>

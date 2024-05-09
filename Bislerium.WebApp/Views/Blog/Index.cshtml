@@ -1,0 +1,175 @@
+﻿@using Bislerium.Domain.Enums
+@using System.Security.Claims
+@using Bislerium.Domain.ViewModels
+@using Bislerium.Domain.Entity.Blogs
+@model IEnumerable<Bislerium.Domain.Entity.Blogs.Blog>
+
+@{
+    ViewData["Title"] = "Index";
+    var userId = User.Identity.IsAuthenticated ? User.FindFirstValue(ClaimTypes.NameIdentifier).ToString() : null;
+}
+
+<div class="row justify-content-end">
+    <div class="col-md-auto">
+        <form id="sortForm" method="get">
+            <input type="hidden" name="pageno" id="currentPage" value="@TempData["Pageno"]">
+            <input type="hidden" id="currentSortBy" value="@TempData["SortBy"]">
+
+            <select name="no" class="form-select mr-2" onchange="submitForm()">
+                <option value="" selected disabled>Sort option</option>
+                <option value="0" selected="@((int)TempData["SortBy"] == 0)">Date</option>
+                <option value="1" selected="@((int)TempData["SortBy"] == 1)">Popularity</option>
+                <option value="2" selected="@((int)TempData["SortBy"] == 2)">Random</option>
+            </select>
+        </form>
+    </div>
+</div>
+
+@foreach (var item in Model)
+{
+    var wordCount = item.Content.Split(new char[] { ' ', '\n' }, StringSplitOptions.RemoveEmptyEntries).Length;
+    var minutesToRead = (int)Math.Ceiling((double)wordCount / 200);
+
+
+    <div class="blog-card row mb-4">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow rounded-5">
+                <div class="card-body">
+                    <div class="row">
+
+                        <div class="col author-info">
+                            <div class="d-flex align-items-start">
+                                <img class="rounded-circle me-3 avatar" src="~/images/Profiles/@item.User.ProfileUrl" alt="avatar" width="60" height="60" />
+                                <div>
+                                    @if (User.Identity.IsAuthenticated)
+                                    {
+
+                                        @if (item.User.Id == userId)
+                                        {
+                                            <a asp-action="Index" asp-controller="Profile" asp-route-id="@item.User.Id" class="text-decoration-none">
+                                                <h6 class="fw-bold text-black mb-1">@item.User.Name</h6>
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <a asp-action="UserProfile" asp-controller="Profile" asp-route-id="@item.User.Id" class="text-decoration-none">
+                                                <h6 class="fw-bold text-black mb-1">@item.User.Name</h6>
+                                            </a>
+                                        }
+
+                                    }
+                                    else
+                                    {
+                                        <h6 class="fw-bold text-black mb-1">@item.User.Name</h6>
+                                    }
+                                    <p class="text-muted small mb-0">@item.CreatedAt.ToString("dd-MMM-yyyy")</p>
+                                    <p class="text-muted read-time">Read Time: @minutesToRead minutes</p>
+
+                                </div>
+                            </div>
+                            <div class="card-text mt-3 content-preview">
+                                <p class="fw-bolder">
+                                    <a asp-action="Index" asp-controller="Comment" asp-route-id="@item.Id" asp-route-userId="@userId" class="text-decoration-none">
+                                        @item.Title
+                                    </a>
+
+                                </p>
+
+                                @Html.Raw(item.Content.Length > 300 ? item.Content.Substring(0, 300) + "..." : item.Content)
+                                @if (item.Content.Length > 300)
+                                {
+                                    <a asp-action="Index" asp-controller="Comment" asp-route-id="@item.Id" asp-route-userId="@userId" class="text-decoration-none">Continue</a>
+                                }
+
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(item.ImageUrl))
+                        {
+                            <div class="col-md-6">
+                                <img src="~/Images/Blogs/@item.ImageUrl" class="card-img-top img-fluid blog-image" alt="Blog Image" />
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent d-flex justify-content-between align-items-center interaction-buttons">
+                    @if (User.Identity.IsAuthenticated)
+                    {
+
+                        <form class="likeForm" asp-action="Create" asp-controller="UpVoteBlog">
+                            <input name="LikedBlog" value="@item.Id" hidden />
+                            <input name="Reaction" value="@ReactionType.UpVote" hidden />
+                            <input name="LikedUser" value="@userId" hidden />
+                            <button class="btn btn-outline-primary btn-sm" type="submit">
+                                @Html.DisplayFor(modelItem => item.UpVotes)
+                                UpVote
+                            </button>
+                        </form>
+
+                        <form class="likeForm" asp-action="Create" asp-controller="UpVoteBlog">
+                            <input name="LikedBlog" value="@item.Id" hidden />
+                            <input name="Reaction" value="@ReactionType.DownVote" hidden />
+                            <input name="LikedUser" value="@userId" hidden />
+                            <button class="btn btn-outline-danger btn-sm" type="submit">
+                                @Html.DisplayFor(modelItem => item.DownVotes)
+                                DownVote
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <button class="btn btn-outline-primary btn-sm" type="submit" disabled>
+                            @Html.DisplayFor(modelItem => item.UpVotes)
+                            UpVote
+                        </button>
+
+
+                        <button class="btn btn-outline-danger btn-sm" type="submit" disabled>
+                            @Html.DisplayFor(modelItem => item.DownVotes)
+                            DownVote
+                        </button>
+                    }
+                    <a asp-action="Index" asp-controller="Comment" asp-route-id="@item.Id" asp-route-userId="@userId" class="btn btn-sm btn-outline-dark">Comment</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+<div class="text-center">
+    <form id="sortForm" method="get">
+        <input type="hidden" name="pageno" id="currentPage" value="@TempData["Pageno"]">
+        <input type="hidden" id="currentSortBy" value="@TempData["SortBy"]">
+        @if ((int)TempData["Pageno"] != 1)
+        {
+            <button class="btn btn-primary" type="button" onclick="navigatePage(-1)">Previous</button>
+        }
+        else
+        {
+            <button class="btn btn-primary" type="button" onclick="navigatePage(-1)" disabled>Previous</button>
+        }
+        @if (ViewBag.HasNext)
+        {
+            <button class="btn btn-primary" type="button" onclick="navigatePage(1)">Next</button>
+        }
+        else
+        {
+            <button class="btn btn-primary" type="button" onclick="navigatePage(1)" disabled>Next</button>
+        }
+    </form>
+</div>
+
+
+<script>
+    function submitForm() {
+        document.getElementById("sortForm").submit();
+    }
+
+    function navigatePage(offset) {
+        var currentPage = parseInt(document.getElementById("currentPage").value) || 1; 
+        var newPage = currentPage + offset;
+        if (newPage >= 1) {
+            document.getElementById("currentPage").value = newPage;
+            document.getElementById("sortForm").submit(); 
+        }
+    }
+</script>
+
